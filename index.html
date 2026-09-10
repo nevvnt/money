@@ -58,19 +58,14 @@
             <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
                 <!-- User Profile / Auth State -->
                 <div id="auth-container" class="flex items-center gap-2">
-                    <button id="btn-login" onclick="loginWithGoogle()" class="apple-card px-4 py-2.5 flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-white btn-active shadow-sm border border-gray-200">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <span>เข้าสู่ระบบด้วย Google</span>
+                    <button id="btn-login" onclick="openAuthModal()" class="apple-card px-4 py-2.5 flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-white btn-active shadow-sm border border-gray-200">
+                        <i data-lucide="log-in" class="w-4 h-4 text-blue-600"></i>
+                        <span>เข้าสู่ระบบ / สมัครสมาชิก</span>
                     </button>
                     <div id="user-info" class="hidden flex items-center space-x-2 apple-card px-3 py-1.5 shadow-sm">
-                        <img id="user-avatar" class="w-7 h-7 rounded-full border border-gray-200" src="" alt="User Avatar">
-                        <span id="user-name" class="text-xs font-semibold text-gray-700 max-w-[100px] truncate"></span>
-                        <button onclick="logout()" class="text-gray-400 hover:text-red-500 p-1">
+                        <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs border border-blue-200" id="user-avatar-text">U</div>
+                        <span id="user-name" class="text-xs font-semibold text-gray-700 max-w-[120px] truncate"></span>
+                        <button onclick="logout()" class="text-gray-400 hover:text-red-500 p-1" title="ออกจากระบบ">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -117,7 +112,7 @@
 
                         <div class="mb-5">
                             <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">รายละเอียดรายการ</label>
-                            <input type="text" id="title" placeholder="เช่น กาแฟอเมริกานู่, ข้าวกลางวัน..." required class="w-full text-base bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-800 placeholder-gray-400">
+                            <input type="text" id="title" placeholder="เช่น กาแฟอเมริกาโน่, ข้าวกลางวัน..." required class="w-full text-base bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-800 placeholder-gray-400">
                         </div>
 
                         <!-- Dynamic Category Selector -->
@@ -164,6 +159,42 @@
                 </section>
             </div>
 
+        </div>
+    </div>
+
+    <!-- MODAL 0: Auth Modal (Email & Password) -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="apple-card p-6 w-full max-w-md shadow-2xl relative bg-white">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <h3 id="auth-modal-title" class="text-xl font-bold text-gray-900 mb-1">เข้าสู่ระบบ</h3>
+            <p id="auth-modal-subtitle" class="text-xs text-gray-400 mb-5">ใส่อีเมลและรหัสผ่านเพื่อซิงค์ข้อมูลของคุณ</p>
+
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">อีเมล</label>
+                    <input type="email" id="auth-email" placeholder="name@example.com" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider">รหัสผ่าน</label>
+                        <button type="button" id="btn-forgot" onclick="handleForgotPassword()" class="text-xs text-blue-600 hover:underline">ลืมรหัสผ่าน?</button>
+                    </div>
+                    <input type="password" id="auth-password" placeholder="••••••••" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div id="auth-error" class="text-xs text-red-500 hidden bg-red-50 p-2.5 rounded-lg border border-red-100"></div>
+
+                <button type="submit" id="auth-submit-btn" class="w-full py-3.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md shadow-blue-500/20 text-sm transition-colors">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-gray-100 text-center">
+                <p class="text-xs text-gray-500">
+                    <span id="auth-toggle-text">ยังไม่มีบัญชี?</span>
+                    <button type="button" onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-blue-600 font-semibold hover:underline ml-1">สมัครสมาชิก</button>
+                </p>
+            </div>
         </div>
     </div>
 
@@ -276,7 +307,14 @@
     <!-- Firebase SDK Modular Import -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            sendPasswordResetEmail,
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Your Config
@@ -293,10 +331,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
 
         let currentUser = null;
         let unsubscribeDoc = null;
+        let isSignUpMode = false;
 
         const defaultCategories = {
             food: { icon: 'utensils', color: 'bg-orange-50 text-orange-500', name: 'อาหาร' },
@@ -338,11 +376,91 @@
             if (currentUser) syncToFirebase();
         };
 
-        window.loginWithGoogle = async function() {
+        // --- AUTH LOGIC (EMAIL / PASSWORD) ---
+        window.openAuthModal = function() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('auth-error').classList.add('hidden');
+        };
+
+        window.closeAuthModal = function() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        };
+
+        window.toggleAuthMode = function() {
+            isSignUpMode = !isSignUpMode;
+            const title = document.getElementById('auth-modal-title');
+            const subtitle = document.getElementById('auth-modal-subtitle');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+            const forgotBtn = document.getElementById('btn-forgot');
+            document.getElementById('auth-error').classList.add('hidden');
+
+            if (isSignUpMode) {
+                title.textContent = "สมัครสมาชิก";
+                subtitle.textContent = "สร้างบัญชีใหม่เพื่อเริ่มซิงค์ข้อมูลอย่างปลอดภัย";
+                submitBtn.textContent = "ลงทะเบียนสมัครสมาชิก";
+                toggleText.textContent = "มีบัญชีอยู่แล้ว?";
+                toggleBtn.textContent = "เข้าสู่ระบบ";
+                forgotBtn.classList.add('hidden');
+            } else {
+                title.textContent = "เข้าสู่ระบบ";
+                subtitle.textContent = "ใส่อีเมลและรหัสผ่านเพื่อซิงค์ข้อมูลของคุณ";
+                submitBtn.textContent = "เข้าสู่ระบบ";
+                toggleText.textContent = "ยังไม่มีบัญชี?";
+                toggleBtn.textContent = "สมัครสมาชิก";
+                forgotBtn.classList.remove('hidden');
+            }
+        };
+
+        window.handleAuthSubmit = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error');
+            errorEl.classList.add('hidden');
+
             try {
-                await signInWithPopup(auth, provider);
+                if (isSignUpMode) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+                closeAuthModal();
             } catch (error) {
-                alert("เกิดข้อผิดพลาดในการล็อกอิน: " + error.message);
+                errorEl.classList.remove('hidden');
+                switch(error.code) {
+                    case 'auth/email-already-in-use':
+                        errorEl.textContent = "อีเมลนี้ถูกใช้งานไปแล้ว";
+                        break;
+                    case 'auth/invalid-email':
+                        errorEl.textContent = "รูปแบบอีเมลไม่ถูกต้อง";
+                        break;
+                    case 'auth/weak-password':
+                        errorEl.textContent = "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร";
+                        break;
+                    case 'auth/invalid-credential':
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        errorEl.textContent = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+                        break;
+                    default:
+                        errorEl.textContent = "เกิดข้อผิดพลาด: " + error.message;
+                }
+            }
+        };
+
+        window.handleForgotPassword = async function() {
+            const email = document.getElementById('auth-email').value;
+            if (!email) {
+                alert("กรุณากรอกอีเมลของคุณในช่องข้างบนก่อนกดลืมรหัสผ่าน");
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("ส่งลิงก์รีเซ็ตรหัสผ่านไปยัง " + email + " เรียบร้อยแล้ว กรุณาเช็กในกล่องข้อความหรือขยะ (Junk Mail)");
+            } catch (error) {
+                alert("ไม่สามารถส่งอีเมลรีเซ็ตรหัสผ่านได้: " + error.message);
             }
         };
 
@@ -358,8 +476,8 @@
             if (user) {
                 btnLogin.classList.add('hidden');
                 userInfo.classList.remove('hidden');
-                document.getElementById('user-avatar').src = user.photoURL || 'https://via.placeholder.com/150';
-                document.getElementById('user-name').textContent = user.displayName || user.email;
+                document.getElementById('user-avatar-text').textContent = (user.email || 'U').charAt(0).toUpperCase();
+                document.getElementById('user-name').textContent = user.email;
 
                 if (unsubscribeDoc) unsubscribeDoc();
                 unsubscribeDoc = onSnapshot(doc(db, "users_expenses", user.uid), (docSnap) => {
@@ -553,15 +671,14 @@
             e.preventDefault();
             const titleInput = document.getElementById('title');
             const amountInput = document.getElementById('amount');
-            const categoryInput = document.querySelector('input[name="category"]:checked');
+            const selectedCat = document.querySelector('input[name="category"]:checked')?.value || 'other';
 
             if (!amountInput.value || !titleInput.value) return;
 
-            quickAddRecord(titleInput.value, amountInput.value, categoryInput ? categoryInput.value : 'other');
+            quickAddRecord(titleInput.value, amountInput.value, selectedCat);
 
             titleInput.value = '';
             amountInput.value = '';
-            amountInput.blur();
         }
 
         function deleteExpense(index) {
@@ -571,19 +688,19 @@
         }
 
         function clearHistory() {
-            if (confirm('คุณต้องการล้างประวัติการบันทึกทั้งหมดหรือไม่?')) {
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างประวัติทั้งหมด?")) {
                 window.appState.expenses = [];
                 window.saveData();
                 window.renderAll();
             }
         }
 
+        // Modals Controls & Helpers
         function openQuickModal() { document.getElementById('quick-modal').classList.remove('hidden'); }
         function closeQuickModal() { document.getElementById('quick-modal').classList.add('hidden'); }
-
         function toggleModalPriceInput() {
-            const fixedRadio = document.getElementById('qm-fixed');
-            document.getElementById('qm-price-container').style.display = fixedRadio.checked ? 'block' : 'none';
+            const isFixed = document.getElementById('qm-fixed').checked;
+            document.getElementById('qm-price-container').style.display = isFixed ? 'block' : 'none';
         }
 
         function saveCustomQuick(e) {
@@ -597,15 +714,15 @@
                 id: Date.now().toString(),
                 title: title,
                 type: mode,
-                amount: mode === 'fixed' ? parseFloat(price || 0) : null,
+                amount: mode === 'fixed' ? parseFloat(price) || 0 : null,
                 category: category
             });
 
-            document.getElementById('qm-title').value = '';
-            document.getElementById('qm-price').value = '';
-            closeQuickModal();
             window.saveData();
             window.renderAll();
+            closeQuickModal();
+            document.getElementById('qm-title').value = '';
+            document.getElementById('qm-price').value = '';
         }
 
         function deleteQuickButton(id) {
@@ -615,23 +732,21 @@
         }
 
         function openCategoryModal() {
-            renderIconPicker();
             document.getElementById('category-modal').classList.remove('hidden');
+            renderIconPicker();
         }
-
         function closeCategoryModal() { document.getElementById('category-modal').classList.add('hidden'); }
 
         function renderIconPicker() {
             const container = document.getElementById('icon-picker-container');
             container.innerHTML = '';
-
-            availableIcons.forEach(iconName => {
+            availableIcons.forEach(icon => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = `p-2 rounded-xl flex justify-center items-center ${selectedIconForCategory === iconName ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-100'}`;
-                btn.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+                btn.className = `p-2 rounded-lg flex items-center justify-center border ${selectedIconForCategory === icon ? 'border-purple-600 bg-purple-50 text-purple-600' : 'border-gray-200 hover:bg-gray-100 text-gray-500'}`;
+                btn.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
                 btn.onclick = () => {
-                    selectedIconForCategory = iconName;
+                    selectedIconForCategory = icon;
                     renderIconPicker();
                 };
                 container.appendChild(btn);
@@ -644,74 +759,64 @@
             const name = document.getElementById('cm-name').value;
             const key = 'cat_' + Date.now();
 
-            const colorOptions = ['bg-indigo-50 text-indigo-500', 'bg-emerald-50 text-emerald-500', 'bg-rose-50 text-rose-500', 'bg-amber-50 text-amber-500'];
-            const randomColor = colorOptions[Math.floor(Math.random() * colorOptions.length)];
-
             window.appState.categories[key] = {
-                name: name,
                 icon: selectedIconForCategory,
-                color: randomColor
+                color: 'bg-purple-50 text-purple-600',
+                name: name
             };
 
-            document.getElementById('cm-name').value = '';
-            closeCategoryModal();
             window.saveData();
             window.renderAll();
+            closeCategoryModal();
+            document.getElementById('cm-name').value = '';
         }
 
         function deleteCategory(key) {
-            delete window.appState.categories[key];
-            window.saveData();
-            window.renderAll();
+            if (confirm("ลบหมวดหมู่นี้หรือไม่?")) {
+                delete window.appState.categories[key];
+                window.saveData();
+                window.renderAll();
+            }
         }
 
         function exportToPDF() {
-            if (window.appState.expenses.length === 0) {
-                alert('ไม่มีรายการบันทึกสำหรับดาวน์โหลด PDF');
-                return;
-            }
-
+            const element = document.getElementById('pdf-report');
             const now = new Date();
-            const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
             
-            document.getElementById('pdf-date').textContent = dateStr;
-            document.getElementById('pdf-total').textContent = document.getElementById('total-amount').textContent + ' THB';
-            document.getElementById('pdf-count').textContent = `${window.appState.expenses.length} รายการ`;
+            document.getElementById('pdf-date').textContent = now.toLocaleDateString('th-TH');
+            document.getElementById('pdf-total').textContent = `${document.getElementById('total-amount').textContent} THB`;
+            document.getElementById('pdf-count').textContent = document.getElementById('total-count').textContent;
 
-            const userName = document.getElementById('user-name').textContent;
-            document.getElementById('pdf-user').textContent = userName ? `สร้างโดย: ${userName}` : 'สร้างโดย: ผู้ใช้งานทั่วไป';
-
-            const tableBody = document.getElementById('pdf-table-body');
-            tableBody.innerHTML = '';
+            const tbody = document.getElementById('pdf-table-body');
+            tbody.innerHTML = '';
 
             window.appState.expenses.forEach(item => {
                 const cat = window.appState.categories[item.category] || window.appState.categories.other;
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50";
                 tr.innerHTML = `
-                    <td class="py-3 px-2 text-gray-500">${item.time}</td>
+                    <td class="py-3 px-2 text-gray-500 text-xs">${item.time || '-'}</td>
                     <td class="py-3 px-2 font-medium text-gray-800">${item.title}</td>
                     <td class="py-3 px-2 text-gray-500">${cat.name}</td>
-                    <td class="py-3 px-2 text-right font-semibold text-gray-900">-${parseFloat(item.amount).toLocaleString('th-TH')}</td>
+                    <td class="py-3 px-2 text-right font-bold text-gray-900">${parseFloat(item.amount).toLocaleString('th-TH')}</td>
                 `;
-                tableBody.appendChild(tr);
+                tbody.appendChild(tr);
             });
 
-            const element = document.getElementById('pdf-report');
-            const opt = {
-                margin:       [0.5, 0.5, 0.5, 0.5],
-                filename:     `Expense_Summary_${now.toISOString().slice(0,10)}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save();
+            element.parentElement.classList.remove('hidden');
+            html2pdf().set({
+                margin: 10,
+                filename: `expense-report-${now.toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(element).save().then(() => {
+                element.parentElement.classList.add('hidden');
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize App on load
+        window.addEventListener('DOMContentLoaded', () => {
             if (window.initApp) window.initApp();
-            toggleModalPriceInput();
         });
     </script>
 </body>
