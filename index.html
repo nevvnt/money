@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Expense Tracker - Firebase & Dynamic Categories Edition</title>
+    <title>Expense Tracker - Firebase & Date Picker Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -52,7 +52,7 @@
                     <i data-lucide="wallet" class="w-7 h-7 text-blue-500"></i>
                     บันทึกค่าใช้จ่าย
                 </h1>
-                <p class="text-xs text-gray-400 mt-0.5">Apple Minimalist • Firebase Sync & Custom Categories</p>
+                <p class="text-xs text-gray-400 mt-0.5">Apple Minimalist • Firebase Sync & Custom Date Support</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
@@ -105,6 +105,18 @@
                 <section class="apple-card p-6 shadow-sm">
                     <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">บันทึกรายการใหม่</h2>
                     <form id="expense-form" onsubmit="addExpense(event)">
+                        
+                        <!-- Date & Time Picker (Auto Defaults to Now, Custom Editable) -->
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider">วันที่และเวลา</label>
+                                <button type="button" onclick="setCurrentDateTime()" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3"></i> รีเซ็ตเป็นปัจจุบัน
+                                </button>
+                            </div>
+                            <input type="datetime-local" id="expense-datetime" required class="w-full text-sm bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all">
+                        </div>
+
                         <div class="mb-5">
                             <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">จำนวนเงิน (บาท)</label>
                             <input type="number" step="any" inputmode="decimal" id="amount" placeholder="0.00" required class="w-full text-4xl font-semibold bg-gray-50/80 border border-gray-200 rounded-2xl px-4 py-3.5 text-center focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-900 shadow-inner">
@@ -293,7 +305,7 @@
             <table class="w-full text-left text-sm">
                 <thead>
                     <tr class="border-b border-gray-200 text-gray-400 uppercase text-xs">
-                        <th class="py-3 px-2">เวลา</th>
+                        <th class="py-3 px-2">วันที่-เวลา</th>
                         <th class="py-3 px-2">รายการ</th>
                         <th class="py-3 px-2">หมวดหมู่</th>
                         <th class="py-3 px-2 text-right">จำนวนเงิน (บาท)</th>
@@ -317,7 +329,6 @@
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Your Config
         const firebaseConfig = {
             apiKey: "AIzaSyD9WtKxappUFkqNoUwNKamW9uAZbiqaWkg",
             authDomain: "dance-tracker-63b2c.firebaseapp.com",
@@ -376,7 +387,7 @@
             if (currentUser) syncToFirebase();
         };
 
-        // --- AUTH LOGIC (EMAIL / PASSWORD) ---
+        // --- AUTH LOGIC ---
         window.openAuthModal = function() {
             document.getElementById('auth-modal').classList.remove('hidden');
             document.getElementById('auth-error').classList.add('hidden');
@@ -498,12 +509,22 @@
             }
         });
 
-        window.initApp = function() { window.renderAll(); };
+        window.initApp = function() { 
+            window.setCurrentDateTime();
+            window.renderAll(); 
+        };
     </script>
 
     <script>
         const availableIcons = ['heart', 'star', 'home', 'zap', 'shield', 'gift', 'tv', 'music', 'book', 'wifi', 'dollar-sign', 'camera', 'coffee', 'briefcase', 'smile'];
         let selectedIconForCategory = 'star';
+
+        // Helper: Set Current Local DateTime for HTML Input
+        function setCurrentDateTime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('expense-datetime').value = now.toISOString().slice(0, 16);
+        }
 
         function renderCategorySelector() {
             const container = document.getElementById('category-selector-container');
@@ -599,6 +620,9 @@
                     total += parseFloat(item.amount);
 
                     const cat = window.appState.categories[item.category] || window.appState.categories.other;
+                    
+                    // Format date & time display
+                    const displayDateTime = item.dateTime ? new Date(item.dateTime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : `${item.date || ''} ${item.time || ''}`;
 
                     const itemEl = document.createElement('div');
                     itemEl.className = 'flex items-center justify-between p-3.5 bg-white/70 rounded-2xl border border-gray-100 hover:bg-white transition-all';
@@ -609,7 +633,7 @@
                             </div>
                             <div>
                                 <div class="text-sm font-semibold text-gray-800">${item.title}</div>
-                                <div class="text-[11px] text-gray-400">${item.time} (${cat.name})</div>
+                                <div class="text-[11px] text-gray-400">${displayDateTime} • ${cat.name}</div>
                             </div>
                         </div>
                         <div class="flex items-center space-x-3">
@@ -639,7 +663,8 @@
             if (!btn) return;
 
             if (btn.type === 'fixed') {
-                quickAddRecord(btn.title, btn.amount, btn.category);
+                const nowVal = new Date().toISOString();
+                quickAddRecord(btn.title, btn.amount, btn.category, nowVal);
             } else {
                 document.getElementById('title').value = btn.title;
                 const catRadio = document.querySelector(`input[name="category"][value="${btn.category}"]`);
@@ -651,16 +676,16 @@
             }
         }
 
-        function quickAddRecord(title, amount, category) {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-
+        function quickAddRecord(title, amount, category, customDateTime) {
+            const dt = customDateTime ? new Date(customDateTime) : new Date();
+            
             window.appState.expenses.push({
                 title: title,
                 amount: parseFloat(amount),
                 category: category,
-                time: timeStr,
-                date: now.toLocaleDateString('th-TH')
+                dateTime: dt.toISOString(),
+                time: dt.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                date: dt.toLocaleDateString('th-TH')
             });
 
             window.saveData();
@@ -671,14 +696,16 @@
             e.preventDefault();
             const titleInput = document.getElementById('title');
             const amountInput = document.getElementById('amount');
+            const datetimeInput = document.getElementById('expense-datetime');
             const selectedCat = document.querySelector('input[name="category"]:checked')?.value || 'other';
 
             if (!amountInput.value || !titleInput.value) return;
 
-            quickAddRecord(titleInput.value, amountInput.value, selectedCat);
+            quickAddRecord(titleInput.value, amountInput.value, selectedCat, datetimeInput.value);
 
             titleInput.value = '';
             amountInput.value = '';
+            setCurrentDateTime(); // Reset back to current time after saving
         }
 
         function deleteExpense(index) {
@@ -792,9 +819,11 @@
 
             window.appState.expenses.forEach(item => {
                 const cat = window.appState.categories[item.category] || window.appState.categories.other;
+                const displayDT = item.dateTime ? new Date(item.dateTime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : `${item.date || '-'} ${item.time || ''}`;
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="py-3 px-2 text-gray-500 text-xs">${item.time || '-'}</td>
+                    <td class="py-3 px-2 text-gray-500 text-xs">${displayDT}</td>
                     <td class="py-3 px-2 font-medium text-gray-800">${item.title}</td>
                     <td class="py-3 px-2 text-gray-500">${cat.name}</td>
                     <td class="py-3 px-2 text-right font-bold text-gray-900">${parseFloat(item.amount).toLocaleString('th-TH')}</td>
@@ -814,7 +843,6 @@
             });
         }
 
-        // Initialize App on load
         window.addEventListener('DOMContentLoaded', () => {
             if (window.initApp) window.initApp();
         });
